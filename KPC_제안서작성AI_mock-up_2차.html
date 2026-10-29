@@ -1737,6 +1737,8 @@ tr.tl-locked>td{background:#f8f9fb}tr.tl-locked .tl-name{color:var(--ink3)}
 .lp-send{display:flex;align-items:center;gap:6px;padding:10px 12px;margin-bottom:12px;border-radius:8px;background:#eef4ff;color:#1f4fbf;font-size:12.5px}.lp-send b{font-weight:800}
 .scm-w .badge{margin-left:6px}
 
+.tok-tabs{display:flex;gap:2px;border-bottom:1px solid var(--line2)}.tok-tabs .tab{height:40px}
+
 </style>
 </head>
 <body>
@@ -1948,7 +1950,7 @@ const PROMPT_SETS = [
   items:[I1('제안 요약','사업 목적 · 제안 핵심 · 기대효과를 한 장에 담는다.'),I1('핵심 차별화','차별화 포인트 3개를 근거와 함께 제시한다.'),I1('기대효과','정량 효과를 수치로 제시하고 산출 근거를 각주로 단다.')],owner:'경영지원부',at:'2026.10.07',share:'전사 공개',uses:0}
 ];
 const PSO = {};
-const PS_RULES = ['목차명','프롬프트','소스 우선순위'];
+const PS_RULES = ['목차명','프롬프트'];
 /* ② 스킬: PPT 세부 작업 · 편집 규칙 (값은 대부분 드롭다운에서 고르는 구조화 값) */
 /* Skill의 페이지 유형: 공통 규칙을 바탕으로 유형마다 다른 부분만 덮어씀 ('' = 공통 따름) */
 const PAGE_TYPES=[['cover','표지'],['toc','목차'],['div','간지'],['body','본문'],['table','표 · 대응표'],['appx','부록']];
@@ -1983,7 +1985,7 @@ const TEMPLATES = [
  {id:'tp4',file:'Edu_Program_Green.pptx',name:'교육 · 연수 제안용 (Green)',ver:'0.9',status:'비활성',color:'#1f8a4c',desc:'교육과정 체계도 · 일정표 레이아웃을 강화한 교육 사업용 디자인.',layouts:['표지','목차','과정 체계도','일정표','마무리'],fit:'등록 완료',font:'Pretendard',chart:'원형 진행률 · 녹색 강조',info:'타임라인',only:[],owner:'교육사업본부',at:'2026.09.29',share:'지정 부서',uses:0}
 ];
 const ASSET_LOG = [
- ['2026.10.20','프롬프트 세트','CX 혁신 컨설팅 제안서','v2.0 — 목차별 소스 우선순위 · 분량 설정 추가','CX본부'],
+ ['2026.10.20','프롬프트 세트','CX 혁신 컨설팅 제안서','v2.0 — 목차별 프롬프트 추가','CX본부'],
  ['2026.10.18','프롬프트 세트','공공 AI 플랫폼 구축 제안서','v3.1 — 보안 체계 목차 프롬프트 보강','AI사업본부'],
  ['2026.10.17','Template','행정안전부 AI 에이전트 전용 (Teal)','v1.0 프로젝트 전용 등록','AI사업본부'],
  ['2026.10.15','Skill','KPC 표준 레이아웃 규칙','v2.0 — 12열 안내선 · 0.25cm 눈금 기준으로 변경','디자인전략실'],
@@ -2121,7 +2123,7 @@ let actSeq = 0;
 function act(fn){ const k='a'+(actSeq++); ACTIONS[k]=fn; return k; }
 document.addEventListener('click',e=>{ const t=e.target.closest('[data-act]'); if(!t) return; const f=ACTIONS[t.dataset.act]; if(f){ e.preventDefault(); f(e,t); }});
 
-function go(route,opts={}){ if(typeof A!=='undefined') A.draw=null; if(route==='my'||route==='make'||route==='check') route='pipeline'; if(route==='assets') route='a-'+(['ps','sk','tp'].includes(A.tab)?A.tab:'ps'); S._keepScroll=false; Object.assign(S,{route,peek:null,pd:null},opts); syncHash(); render(); }
+function go(route,opts={}){ if(typeof A!=='undefined') A.draw=null; if(route==='policy'){ route='token'; if(typeof A!=='undefined') A.tokTab='model'; } if(route==='my'||route==='make'||route==='check') route='pipeline'; if(route==='assets') route='a-'+(['ps','sk','tp'].includes(A.tab)?A.tab:'ps'); S._keepScroll=false; Object.assign(S,{route,peek:null,pd:null},opts); syncHash(); render(); }
 function openProject(id,tab='analysis',o={}){
   if(!MY_PROJ.includes(id)){ go('pipeline',{pd:id}); return toast('참여 중인 프로젝트만 작업 화면으로 열 수 있습니다 · 검토 목록에서 확인하세요'); }
   const p=byId(id); if(tab==='checklist'){ tab='analysis'; S.anTab='check'; } if(tab==='submit'||(tab==='review'&&p&&p.pm!==ME)) tab='write'; if(p&&p.status==='review'&&!['analysis','files','toc'].includes(tab)) tab='analysis';
@@ -2141,7 +2143,7 @@ function fromHash(){ let hs=''; try{ hs=location.hash||''; }catch(_){ } const m=
   if(m[0]==='project'&&byId(m[1])&&!MY_PROJ.includes(m[1])){ S.route='pipeline'; S.pd=m[1]; }
   else if(m[0]==='project'&&byId(m[1])){ S.route='project';S.pid=m[1];S.tab=m[2]||'analysis'; if(m[3])S.sec=m[3]; }
   else if(m[0]==='pipeline'&&byId(m[1])){ S.route='pipeline'; S.pd=m[1]; S.pid=m[1]; }
-  else if(['pipeline','register','my','done','make','check','final','assets','a-ps','a-sk','a-tp','policy','token','users','dashboard','audit','sysprompt'].includes(m[0])) S.route=m[0]; }
+  else if(['pipeline','register','my','done','make','check','final','assets','a-ps','a-sk','a-tp','policy','token','users','dashboard','audit','sysprompt'].includes(m[0])){ S.route=m[0]; if(m[0]==='policy'){ S.route='token'; S._tokTab='model'; } } }
 
 function toast(msg){ const t=$('#toast'); t.innerHTML=ic('check')+esc(msg); t.classList.remove('act'); t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),2200); }
 
@@ -2237,14 +2239,14 @@ document.addEventListener('click',e=>{ const b=e.target.closest('#pop [data-gp],
   if(b.dataset.gpx){ const r=b.dataset.gpx; if(r==='final') S.finalTab='done'; S.from=null; return go(r); }
   const p=byId(b.dataset.gp); setCur(p.id); const tab=S.route==='project'&&(p.status!=='review'||P_PRE.includes(S.tab))?S.tab:'analysis'; openProject(p.id,tab); toast(`현재 프로젝트: ${p.name}`); });
 /* 관리자 메뉴 추가 항목: 원본 '모델 설정' 버튼을 그대로 복제해 같은 모양으로 붙입니다 (사용자 설정 · 대시보드 · 활동 로그) */
-const GNB_EXTRA=[['lnb-token-btn','토큰·비용 관리','<circle cx="12" cy="12" r="8.5"/><path d="M14.8 9.2a2.6 2.6 0 0 0-2.8-1.4c-1.4.2-2.3 1-2.2 2.1.2 2.4 5.3 1.4 5.3 3.9 0 1.2-1.2 2.1-2.8 2.2a3 3 0 0 1-3-1.6M12 6.5v1.3M12 16.4v1.1"/>'],['lnb-users-btn','사용자 설정','<circle cx="9" cy="8" r="3.5"/><path d="M3 20a6 6 0 0 1 12 0M16 4.5a3.5 3.5 0 0 1 0 7M21 20a6 6 0 0 0-4-5.6"/>'],
+const GNB_EXTRA=[['lnb-token-btn','토큰관리','<circle cx="12" cy="12" r="8.5"/><path d="M14.8 9.2a2.6 2.6 0 0 0-2.8-1.4c-1.4.2-2.3 1-2.2 2.1.2 2.4 5.3 1.4 5.3 3.9 0 1.2-1.2 2.1-2.8 2.2a3 3 0 0 1-3-1.6M12 6.5v1.3M12 16.4v1.1"/>'],['lnb-users-btn','사용자 설정','<circle cx="9" cy="8" r="3.5"/><path d="M3 20a6 6 0 0 1 12 0M16 4.5a3.5 3.5 0 0 1 0 7M21 20a6 6 0 0 0-4-5.6"/>'],
   ['lnb-dashboard-btn','대시보드','<path d="M5 20V11M10 20V5M15 20v-6M20 20V8"/>'],['lnb-audit-btn','활동 로그','<path d="M4 12a8 8 0 1 0 2.3-5.6L4 8.5M4 4v4.5h4.5M12 8v4l2.5 1.5"/>'],['lnb-sysprompt-btn','admin','<path d="M4 6h16M4 12h10M4 18h7"/><path d="m16 15 3 3-3 3"/>']];
 function gnbAdminExtra(admin){
   const wm=$('#kpc-lnb-mini button[data-target="lnb-writing-assets-btn"]'); if(wm&&!$('#kpc-lnb-mini button[data-target="lnb-a-sk"]')){ wm.setAttribute('aria-label','프롬프트 세트'); wm.title='프롬프트 세트'; let last=wm; const pst=wm.querySelector('path')?.getAttribute('style')||'';
     [['lnb-a-sk','Skill','<path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/>'],['lnb-a-tp','Template','<rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/>']].forEach(([id,t,svg])=>{ const b=wm.cloneNode(true); b.dataset.target=id; b.setAttribute('aria-label',t); b.title=t; const sv=b.querySelector('svg'); sv.innerHTML=svg; sv.querySelectorAll('path,rect').forEach(x=>x.setAttribute('style',pst)); last.after(b); last=b; }); }
-  const ref=$('#lnb-operating-policies-btn'); if(ref&&!$('#lnb-users-btn')){ let last=ref; GNB_EXTRA.forEach(([id,t])=>{ const b=ref.cloneNode(true); b.id=id; b.textContent=t; b.removeAttribute('aria-current'); last.after(b); last=b; }); }
+  const ref=$('#lnb-operating-policies-btn'); if(ref&&!$('#lnb-users-btn')){ let last=ref; GNB_EXTRA.forEach(([id,t])=>{ const b=ref.cloneNode(true); b.id=id; b.textContent=t; b.removeAttribute('aria-current'); last.after(b); last=b; });  ref.remove(); }
   const mref=$('#kpc-lnb-mini button[data-target="lnb-operating-policies-btn"]'); if(mref&&!$('#kpc-lnb-mini button[data-target="lnb-users-btn"]')){ let last=mref; const pst=mref.querySelector('path')?.getAttribute('style')||'';
-    GNB_EXTRA.forEach(([id,t,svg])=>{ const b=mref.cloneNode(true); b.dataset.target=id; b.setAttribute('aria-label',t); b.title=t; const sv=b.querySelector('svg'); sv.innerHTML=svg; sv.querySelectorAll('path,circle').forEach(x=>x.setAttribute('style',pst)); last.after(b); last=b; }); }
+    GNB_EXTRA.forEach(([id,t,svg])=>{ const b=mref.cloneNode(true); b.dataset.target=id; b.setAttribute('aria-label',t); b.title=t; const sv=b.querySelector('svg'); sv.innerHTML=svg; sv.querySelectorAll('path,circle').forEach(x=>x.setAttribute('style',pst)); last.after(b); last=b; });  mref.remove(); }
 }
 /* 접힌 메뉴: 아이콘에 마우스를 올리면 오른쪽에 메뉴 이름 */
 document.addEventListener('mouseover',e=>{ const b=e.target.closest?.('#kpc-lnb-mini button[data-rtip]'); let t=$('#rtip');
@@ -4161,16 +4163,15 @@ const SRC_N={prop:'제안 관련 자료',rel:'유관자료',web:'웹 검색'};
 const srcOrder=src=>(src||['prop','rel','web']).map((k,i)=>`<span class="src-o">${i+1}</span>${SRC_N[k]}`).join(' <span class="src-a">›</span> ');
 const srcShort=src=>src.map(k=>({prop:'제안',rel:'유관',web:'웹'})[k]).join(' › ');
 const srcOrdered=(src,inh)=>`<span class="srcc ${inh?'inh':''}">${src.map((k,i)=>`<span class="sc"><i>${i+1}</i>${({prop:'제안 관련',rel:'유관',web:'웹'})[k]}</span>`).join('')}</span>`;
-/* 목차명 | 프롬프트 | 소스 우선순위. p를 넘기면(제작 설정) 프롬프트를 이 프로젝트용으로 고칠 수 있습니다 */
+/* 목차명 | 프롬프트. p를 넘기면(제작 설정) 프롬프트를 이 프로젝트용으로 고칠 수 있습니다 */
 function psTableHtml(x,p){ let n1=0,n2=0;
   const sv=(e,fmt=v=>esc(v))=>`<span class="pv ${e.inh?'inh':''}" title="${e.inh?(e.def?'기본값':'대목차에서 상속'):''}">${e.inh?'↳ ':''}${fmt(e.v)}</span>`;
   const rows=x.items.map((it,idx)=>{ if(it.lv===1){n1++;n2=0;} else n2++; const no=it.lv===1?`${ROMAN[n1-1]||n1}`:`${n1}.${n2}`, pr=p?psPrompt(p,x,idx):{text:it.p}, key=x.id+':'+idx, own=p&&(PSO[p.id]||{})[key]!=null&&(PSO[p.id]||{})[key]!=='', e=psEff(x,idx);
     const inh=it.lv===2&&!it.p&&!own;
     const cell=p?`<textarea class="inp pso" rows="2" data-pso="${key}" ${can(p,'setup')?'':'readonly'} placeholder="${inh?'비워 두면 대목차 프롬프트를 상속합니다':'프롬프트'}">${esc(own?(PSO[p.id]||{})[key]:it.p)}</textarea>${inh?`<div class="pso-inh">${ic('history','sm')}상속 · ${esc(pr.text)}</div>`:''}`
       :(it.p?`<div class="pst-p">${esc(it.p)}</div>`:`<div class="pso-inh">${ic('history','sm')}대목차 프롬프트 상속</div>`);
-    return `<tr class="${it.lv===1?'l1':'l2'}"><td><div class="pst-name"><span class="${it.lv===1?'ch-no':'num meta'}">${no}</span><b>${esc(it.t)}</b></div></td><td>${cell}</td>
-      <td>${p?srcEditCell(p,x,idx,e):`${e.src.v.length?srcOrdered(e.src.v,e.src.inh):'<span class="meta">—</span>'}${e.src.inh&&!e.src.def?`<div class="pv inh">↳ 대목차 상속</div>`:''}`}</td></tr>`; }).join('');
-  return `<div class="tbl-x"><table class="tbl fixed pst-tbl"><colgroup><col style="width:22%"><col><col style="width:240px"></colgroup><thead><tr><th>목차명</th><th>프롬프트</th><th>소스 우선순위</th></tr></thead><tbody>${rows}</tbody></table></div>
+    return `<tr class="${it.lv===1?'l1':'l2'}"><td><div class="pst-name"><span class="${it.lv===1?'ch-no':'num meta'}">${no}</span><b>${esc(it.t)}</b></div></td><td>${cell}</td></tr>`; }).join('');
+  return `<div class="tbl-x"><table class="tbl fixed pst-tbl"><colgroup><col style="width:26%"><col></colgroup><thead><tr><th>목차명</th><th>프롬프트</th></tr></thead><tbody>${rows}</tbody></table></div>
     `; }
 const skFont=v=>`${v[0]}pt ${v[1]}`;
 function skGuardList(x){ const g=x.guard; return [g.shrink&&'텍스트가 넘치면 글자 크기를 한 단계 줄임',g.split&&'그래도 넘치면 슬라이드를 나눔',g.overlap&&'요소가 겹치면 자동 재배치',g.inGuide&&'요소가 안내선 밖으로 나가지 않음',`표가 ${g.tableRows}행을 넘으면 머리글을 반복하며 분할`].filter(Boolean); }
@@ -4258,13 +4259,11 @@ function assetFormHtml(){ const {k,id,f}=A.draw, K=ASSET_KIND[k];
   let b='';
   if(k==='ps'){ let n1=0,n2=0;
         b=sec(1,'기본 정보',`<div class="ps-basic">${txt('name','프롬프트 세트 이름 *','예) CX 혁신 컨설팅 제안서')}${txt('dept','부서','예) CX본부')}<div class="field"><span class="label">공개 범위</span><button type="button" class="vis-mini" data-dr="vis">${ic(f.vis?.all?'globe':'users','sm')}<span>${esc(f.vis?.all?'전사 공통':(f.vis?.items||[]).map(visName).join(', ')||'나만')}</span><span class="meta">${visReach(f.vis)}명</span>${ic('chev','sm')}</button></div></div>${txt('desc','설명','어떤 제안서의 대표 목차인지 한 줄로',true)}`)
-    +sec(2,'목차별 프롬프트 · 설정',`<div class="tbl-x"><table class="tbl fixed pse-tbl"><colgroup><col style="width:28px"><col style="width:64px"><col style="width:22%"><col><col style="width:236px"><col style="width:64px"></colgroup><thead><tr><th></th><th>구분</th><th>목차명</th><th>프롬프트</th><th>소스 우선순위</th><th></th></tr></thead><tbody>
+    +sec(2,'목차별 프롬프트 · 설정',`<div class="tbl-x"><table class="tbl fixed pse-tbl"><colgroup><col style="width:28px"><col style="width:64px"><col style="width:22%"><col><col style="width:64px"></colgroup><thead><tr><th></th><th>구분</th><th>목차명</th><th>프롬프트</th><th></th></tr></thead><tbody>
       ${f.items.map((it,i)=>{ if(it.lv===1){n1++;n2=0;} else n2++; const sub=it.lv===2;
         return `<tr class="${it.lv===1?'l1':'l2'}" data-prow="${i}"><td><span class="tl-grip" draggable="true" data-pdrag="${i}" title="끌어서 이동">${ic('grip','sm')}</span></td><td><button type="button" class="lv-tg ${it.lv===1?'on':''}" data-dr="it-lv" data-i="${i}" title="대목차/소목차 전환">${it.lv===1?'대목차':'소목차'}</button></td>
         <td><div class="pst-name"><span class="num meta">${it.lv===1?(ROMAN[n1-1]||n1):n1+'.'+n2}</span><input class="inp" data-ait="${i}.t" value="${esc(it.t)}" placeholder="${it.lv===1?'예) 사업 이해':'예) 사업 배경 및 목적'}"></div></td>
         <td><textarea class="inp" rows="2" data-ait="${i}.p" placeholder="${it.lv===2?'비워 두면 대목차 프롬프트를 상속합니다':'이 목차를 어떻게 쓸지 — 목적 · 방향, 꼭 넣을 내용, 참고 자료'}">${esc(it.p)}</textarea></td>
-        <td><div class="src-pick">${['prop','rel','web'].map(k_=>{ const r=(it.src||[]).indexOf(k_); return `<button type="button" class="sp ${r>=0?'on':''}" data-dr="src-tg" data-i="${i}" data-k="${k_}" title="${r>=0?'다시 누르면 빠짐':'누르면 다음 순위로 추가'}">${r>=0?`<i>${r+1}</i>`:''}${({prop:'제안 관련',rel:'유관',web:'웹'})[k_]}</button>`; }).join('')}</div>
-          ${sub?(it.src?.length?`<button type="button" class="sp-clear" data-dr="src-clr" data-i="${i}">상속으로</button>`:(psEff(f,i).src.v.length?`<div class="sp-hint">상속 · ${srcShort(psEff(f,i).src.v)}</div>`:'')):''}</td>
         <td><div class="row" style="gap:2px"><button type="button" class="icon-btn xs danger" data-dr="it-rm" data-i="${i}" title="삭제">${ic('x','sm')}</button></div></td></tr>`; }).join('')}</tbody></table></div>
       <div class="add-split"><button type="button" class="toc-add" data-dr="it-add1">${ic('plus','sm')}대목차 추가</button><button type="button" class="toc-add" data-dr="it-add2">${ic('plus','sm')}소목차 추가</button></div>`)
     ; }
@@ -4349,8 +4348,7 @@ const POL = { models:{'AI 분석':0,'체크리스트':0,'자료 검색':0,'PPT �
 const MODELS=['Gemini 2.5 Pro (공공 수주 심층 추론 권장)','Claude 3.7 Sonnet (기술 아키텍처 특화)','GPT-4o (문장 다듬기 및 번역)'];
 const sw=(on,key)=>`<button class="sw ${on?'on':''}" role="switch" aria-checked="${on}" data-act="${act(()=>{POL[key]=!POL[key];render()})}"><i></i></button>`;
 function pagePolicy(){
-  const tokenPage=S.route==='token'; const t=tokenPage?'token':'model';
-  const tabs=[['model','AI 모델 및 생성 정책'],['org','기관 정보 및 보안 정책']];
+  if(S._tokTab){ A.tokTab=S._tokTab; S._tokTab=null; } const t=A.tokTab==='model'?'model':'token';
   let b='';
   if(t==='model') b=`<div class="card"><div class="card-h"><span class="h2">업무별 기본 AI 모델</span><span class="count gray">${Object.keys(POL.models).length}</span></div>
      <table class="tbl fixed pol-tbl"><colgroup><col style="width:28%"><col></colgroup><thead><tr><th>업무</th><th>기본 AI 모델</th></tr></thead><tbody>
@@ -4379,8 +4377,8 @@ function pagePolicy(){
      <div class="card" style="margin-top:14px"><div class="card-h"><span class="h2">토큰 추가 신청</span><span class="count">${POL.req.filter(r=>r[4]==='대기').length}</span><span class="meta">프로필 메뉴의 '토큰 추가 신청'이 여기로 들어옵니다</span></div>
        <table class="tbl"><thead><tr><th>신청자</th><th>부서</th><th>요청량</th><th>사유</th><th class="r-al">처리</th></tr></thead><tbody>${POL.req.map(r=>`<tr><td><span class="row">${av(r[0])}<b>${r[0]}</b></span></td><td class="meta">${r[1]}</td><td class="num">${r[2]}</td><td>${esc(r[3])}</td>
          <td class="r-al">${r[4]==='대기'?`<button class="btn xs" data-act="${act(()=>{r[4]='반려';logAct({act:'수정',res:'토큰',detail:'토큰 추가 반려',title:`${r[0]} · +${r[2]}`});render()})}">반려</button> <button class="btn xs primary" data-act="${act(()=>{r[4]='승인';const u=TOKEN_USERS.find(x=>x.name===r[0]);if(u)u.limit+=parseInt(r[2])*1000;logAct({act:'승인',res:'토큰',detail:'토큰 추가 승인',title:`${r[0]} · +${r[2]}`});render();toast(r[0]+'님 요청을 승인했습니다 · 한도 반영')})}">승인</button>`:`<span class="badge ${r[4]==='승인'?'b-done':'b-drop'}">${r[4]}</span>`}</td></tr>`).join('')}</tbody></table></div>`; }
-  if(tokenPage) return `<div class="page"><div class="pg-head"><span class="spacer"></span><button class="btn primary" data-act="${act(()=>toast('토큰 정책을 저장했습니다'))}">저장하기</button></div>${b}</div>`;
-  return `<div class="page">${b}</div>`;
+  const tabs=`<div class="tok-tabs">${[['token','토큰 사용량'],['model','모델 설정']].map(([k,l])=>`<button class="tab ${t===k?'on':''}" data-act="${act(()=>{A.tokTab=k;render()})}">${l}</button>`).join('')}</div>`;
+  return `<div class="page"><div class="pg-head">${tabs}<span class="spacer"></span>${t==='token'?`<button class="btn primary" data-act="${act(()=>toast('토큰 정책을 저장했습니다'))}">저장하기</button>`:''}</div>${b}</div>`;
 }
 const TOKEN_USERS=[['정소담','AI사업본부','수석',72400,100000,'초거대 AI 행정 에이전트'],['김민수','AI사업본부','수석',96800,100000,'초거대 AI 행정 에이전트'],['박성훈','AI사업본부','책임',31200,100000,'초거대 AI 행정 에이전트'],
  ['오지현','AI산업본부','선임',154000,150000,'공공기관 생성형 AI 플랫폼'],['한도윤','AI산업본부','책임',88000,150000,'글로벌 ESG 리포팅'],['윤서아','AI산업본부','선임',41000,100000,'공공기관 생성형 AI 플랫폼'],
@@ -4463,7 +4461,7 @@ function profilePopHtml(){
         <div class="pf-stats"><div><small>사용</small><b>${kfmt(u.used)}</b></div><div><small>잔여</small><b>${kfmt(Math.max(0,u.limit-u.used))}</b></div><div><small>한도</small><b>${kfmt(u.limit)}</b></div></div>
         ${rq?`<div class="pf-req ${rq[4]==='대기'?'wait':rq[4]==='승인'?'ok':'no'}">${ic(rq[4]==='승인'?'check':'clock','sm')}추가 신청 ${rq[2]} · ${rq[4]==='대기'?'관리자 승인 대기':rq[4]==='승인'?'승인 · 한도 반영됨':'반려됨'}</div>`:''}
         <div class="pf-acts"><button class="btn sm" data-pf="usage">${ic('grid','sm')}사용량 상세 분석</button><button class="btn sm primary" data-pf="req">${ic('plus','sm')}토큰 추가 신청</button></div>
-        ${admin?`<button class="pf-link" data-pf="policy">${ic('users','sm')}전사 토큰 · 비용 관리<span class="spacer"></span>${ic('chevR','sm')}</button>`:''}</div>
+        ${admin?`<button class="pf-link" data-pf="policy">${ic('users','sm')}전사 토큰관리<span class="spacer"></span>${ic('chevR','sm')}</button>`:''}</div>
       <div class="pf-sec"><div class="pf-st">${ic('list','sm')}내 작업</div><div class="pf-quick">
         <button data-pf="go-my"><b>${mine.length}</b><small>담당 프로젝트</small></button>
         <button data-pf="go-my"><b class="${opn?'red':''}">${opn}</b><small>반영할 의견</small></button>
@@ -4552,7 +4550,7 @@ function drawTokReq(){ const m=$('#promodal'); m.style.width='560px'; const u=my
     <label class="field"><span class="label">사용할 프로젝트</span><select class="inp" data-tr="proj">${projs.map(p=>`<option ${TR.proj===p.name?'selected':''}>${esc(p.name)}</option>`).join('')}<option ${TR.proj==='프로젝트 외 사용'?'selected':''}>프로젝트 외 사용</option></select></label>
     <label class="field"><span class="label">신청 사유 <span class="reqm">*</span></span><textarea class="inp" rows="3" data-tr="why" placeholder="예) 2차 검수 의견 반영으로 3장 기술 부문 전체 재작성이 필요합니다">${esc(TR.why)}</textarea>
       <div class="chips" style="margin-top:6px">${['검수 의견 반영 재작성','RFP 변경 · 재분석','마감 전 슬라이드 재생성'].map(t=>`<button class="chip sm" data-pm2="why-${t}">${t}</button>`).join('')}</div></label>
-    <div class="tr-appr">${ic('users','sm')}<span>승인자</span><b>모델 설정 관리자</b><span class="meta">· 토큰·비용 관리에서 처리</span></div></div>
+    <div class="tr-appr">${ic('users','sm')}<span>승인자</span><b>관리자</b><span class="meta">· 토큰관리에서 처리</span></div></div>
    <div class="modal-f"><button class="btn ghost" data-pm2="to-usage">${ic('chevL','sm')}사용량 보기</button><span class="spacer"></span><button class="btn" data-pm2="close">취소</button><button class="btn primary" data-pm2="submit" ${ok?'':'disabled'}>신청하기</button></div>`; }
 document.addEventListener('click',e=>{ const b=e.target.closest('#promodal [data-pm2]'); if(!b) return; const m=b.dataset.pm2;
   if(m==='close') return closeProModal();
@@ -5273,8 +5271,8 @@ const GUIDE = {
   ['업무별 기본 AI 모델','AI 분석 · 체크리스트 · 자료 검색 · PPT 생성 및 고도화 · 품질검증에 쓸 기본 모델을 정합니다.','']]},
  sysprompt:{t:'admin',items:[
   ['시스템 프롬프트','RFP 요약(AI 분석) · 체크리스트 · 사실검증 프롬프트를 개발자가 작성하고 관리자가 수정합니다.','']]},
- token:{t:'토큰·비용 관리',items:[
-  ['관리자 메뉴에서 바로','모델 설정 안의 탭이던 토큰·비용 관리를 관리자 메뉴의 독립 화면으로 꺼내 한 번에 들어갑니다.',''],
+ token:{t:'토큰관리',items:[
+  ['관리자 메뉴에서 바로','토큰 사용량과 모델 설정을 탭으로 나눠 한 메뉴에서 관리합니다.',''],
   ['부서 → 개인 순으로 좁히기','부서별 사용량 칩을 누르면 아래 개인별 목록이 그 부서로 걸러지고, 이름 검색 · 상태(경고·초과·정지)로 더 좁힙니다.',''],
   ['토큰 추가 신청 처리','프로필 메뉴의 \'토큰 추가 신청\'이 이 화면의 승인 목록으로 들어오고, 승인하면 개인 한도에 바로 더해집니다.','']]},
  users:{t:'사용자 설정',items:[
